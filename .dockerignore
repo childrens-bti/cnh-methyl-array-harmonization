@@ -1,0 +1,34 @@
+.git
+.github
+.gitignore
+
+# Editor and system files
+.DS_Store
+*.swp
+*.bak
+*.log
+*.tmp
+
+# Docs
+README.md
+LICENSE
+
+# CWL job and temp files
+*.cwl.json
+*.inputs.json
+*.outputs.json
+*.err
+*.out
+tmp/
+
+# Data and run artifacts - not needed to build the image
+data/
+outputs/
+params/
+logs/
+manifests/
+test/
+sbg-hints/
+
+# Conda env, not used inside the container
+envs/
