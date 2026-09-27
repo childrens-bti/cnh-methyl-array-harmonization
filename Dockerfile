@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libjpeg-dev \
     libpng-dev \
     libtiff5-dev \
+    libuv1-dev \
     zlib1g-dev \
     cmake \
     pkg-config \
