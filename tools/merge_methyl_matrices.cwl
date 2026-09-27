@@ -7,7 +7,7 @@ doc: |-
 requirements:
 - class: InlineJavascriptRequirement
 - class: DockerRequirement
-  dockerPull: pgc-images.sbgenomics.com/sicklera/openpedcanverse:latest
+  dockerPull: pgc-images.sbgenomics.com/childrens-bti/methyl-harmonization-cwl:v0.1.0
 - class: InitialWorkDirRequirement
   listing:
   - entryname: 02-merge-methyl-matrices.R

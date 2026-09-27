@@ -8,7 +8,7 @@ requirements:
 - class: InlineJavascriptRequirement
 - class: ShellCommandRequirement
 - class: DockerRequirement
-  dockerPull: pgc-images.sbgenomics.com/rokita-lab/openpedcanverse:latest
+  dockerPull: pgc-images.sbgenomics.com/childrens-bti/methyl-harmonization-cwl:v0.1.0
 - class: ResourceRequirement
   ramMin: $(inputs.ram * 1000)
   coresMin: $(inputs.cores)

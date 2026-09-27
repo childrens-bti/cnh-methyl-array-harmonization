@@ -69,8 +69,8 @@ Cavatica at:
 pgc-images.sbgenomics.com/childrens-bti/methyl-harmonization-cwl:v0.1.0
 ```
 
-The CWL tools currently reference pre-built
-`pgc-images.sbgenomics.com/.../openpedcanverse` images rather than this one.
+The three CWL tools in [`tools/`](tools/) reference this image via
+`dockerPull`.
 
 ## Repository Structure
 
