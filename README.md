@@ -62,9 +62,15 @@ See [`params/`](params/) for example input YAML files.
 [`Dockerfile`](Dockerfile) builds an `rocker/r-ver:4.6.1`-based image with
 `optparse`, `tidyverse`, `R.utils`, `qs2`, and `arrow` pinned to exact CRAN
 versions, and `minfi`, `illuminaio`, and `BiocParallel` installed from
-Bioconductor release 3.23 (the release matched to R 4.6). The CWL tools
-currently reference pre-built `pgc-images.sbgenomics.com/.../openpedcanverse`
-images rather than this Dockerfile.
+Bioconductor release 3.23 (the release matched to R 4.6). It's published to
+Cavatica at:
+
+```
+pgc-images.sbgenomics.com/childrens-bti/methyl-harmonization-cwl:v0.1.0
+```
+
+The CWL tools currently reference pre-built
+`pgc-images.sbgenomics.com/.../openpedcanverse` images rather than this one.
 
 ## Repository Structure
 
