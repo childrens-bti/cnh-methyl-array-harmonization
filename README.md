@@ -44,18 +44,33 @@ run the tools individually instead.
 ### Via CWL
 
 Each tool in [`tools/`](tools/) can be run independently with `cwltool`
-(installed via [`envs/cwl_env.yml`](envs/cwl_env.yml)):
+(installed via [`envs/cwl_env.yml`](envs/cwl_env.yml)). No job YAML file is
+needed — `cwltool` auto-generates a `--<input_id>` flag for every input a
+tool declares, so inputs are passed directly on the command line:
 
 ```bash
 conda env create -f envs/cwl_env.yml
 conda activate cwl_env
 
-cwltool tools/unzip_and_sort_files.cwl params/unzip_and_sort_files.yml
-cwltool tools/preprocess_illumina_arrays.cwl params/preprocess_illumina_arrays.yml
-cwltool tools/merge_methyl_matrices.cwl params/merge_methyl_matrices.yml
+cwltool tools/unzip_and_sort_files.cwl \
+    --input_idats_dir /path/to/raw/idats \
+    --manifest_file   MANIFEST.tsv \
+    --output_basename my-cohort
+
+cwltool tools/preprocess_illumina_arrays.cwl \
+    --input_idats_dir outputs/my-cohort-sorted-idats_output_dir/IlluminaHumanMethylationEPIC \
+    --manifest_file   MANIFEST.tsv \
+    --output_basename my-cohort
+
+cwltool tools/merge_methyl_matrices.cwl \
+    --methylation_files outputs/my-cohort-IlluminaHumanMethylationEPIC-methyl-beta-values-masked.parquet \
+    --methylation_files outputs/my-cohort-IlluminaHumanMethylation450k-methyl-beta-values-masked.parquet \
+    --output_basename   my-cohort
 ```
 
-See [`params/`](params/) for example input YAML files.
+Run `cwltool tools/<tool>.cwl --help` to see every input a given tool
+accepts (including optional ones like `funnorm`, `snp_filter`, `ram`, and
+`cores`).
 
 ## Docker
 
@@ -83,7 +98,6 @@ cnh-methyl-array-harmonization
 ├── Dockerfile
 ├── data/                    # Input data to run on
 ├── manifests/               # Manifest files (file_name/Bioassay_ID)
-├── params/                  # Example CWL input parameter YAML files
 ├── outputs/                 # Workflow output files
 ├── envs/                    # Conda environment for local cwltool testing
 ├── README.md

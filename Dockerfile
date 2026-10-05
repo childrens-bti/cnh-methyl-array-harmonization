@@ -40,5 +40,3 @@ RUN R -e "BiocManager::install(version = '3.23', update = FALSE, ask = FALSE)" \
 WORKDIR /workflow
 
 COPY scripts/ scripts/
-
-ENTRYPOINT ["Rscript"]
