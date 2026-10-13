@@ -35,7 +35,19 @@ RUN R -e "remotes::install_version('optparse', version = '1.8.2', repos = 'https
 # Bioconductor packages used by the preprocessing/merge scripts, pinned to the
 # Bioconductor release matched to R 4.6 (see https://bioconductor.org/config.yaml)
 RUN R -e "BiocManager::install(version = '3.23', update = FALSE, ask = FALSE)" \
-    && R -e "BiocManager::install(c('minfi', 'illuminaio', 'BiocParallel'), version = '3.23', update = FALSE, ask = FALSE)"
+    && R -e "packages <- c( \
+      'minfi', 'illuminaio', 'BiocParallel', \
+      'IlluminaHumanMethylation27kmanifest', \
+      'IlluminaHumanMethylation450kmanifest', \
+      'IlluminaHumanMethylationEPICmanifest', \
+      'IlluminaHumanMethylationEPICv2manifest', \
+      'IlluminaHumanMethylation27kanno.ilmn12.hg19', \
+      'IlluminaHumanMethylation450kanno.ilmn12.hg19', \
+      'IlluminaHumanMethylationEPICanno.ilm10b4.hg19', \
+      'IlluminaHumanMethylationEPICv2anno.20a1.hg38' \
+    ); \
+    BiocManager::install(packages, version = '3.23', update = FALSE, ask = FALSE); \
+    stopifnot(all(vapply(packages, requireNamespace, logical(1), quietly = TRUE)))"
 
 WORKDIR /workflow
 
