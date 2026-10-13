@@ -161,7 +161,7 @@ if (n_cores > 1) {
   
   # split sample indices into chunks
   n <- ncol(RGset)
-  chunks <- split(seq_len(n), ceiling(seq_len(n)/500))
+  chunks <- split(seq_len(n), ceiling(seq_len(n)/100))
   
   # run detectionP in parallel on each chunk
   det_list <- bplapply(chunks, function(idx) {
