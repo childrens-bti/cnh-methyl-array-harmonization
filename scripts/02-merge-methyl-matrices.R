@@ -19,21 +19,31 @@ option_list <- list(
               metavar = "character"),
   make_option(opt_str = "--output_prefix", type = "character", default = NULL,
               help = "output file prefix",
-              metavar = "character")
+              metavar = "character"),
+  make_options(opt_str = "--input_prefix", type = "character", default = NULL,
+              help = "comma separated input file prefices to merge",
+              metavar = "character", default = NULL)
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 out_dir <- opt$output_dir
 out_pref <- opt$output_prefix
+in_pref <- opt$input_prefix
+if (!is.null(in_pref)) {
+  in_pref <- strsplit(in_pref, ",", fixed = TRUE)[[1]]
+}
 
 #define the data types - these will be looped through later
 data_types <- c('beta-values-masked', 'm-values-masked', 'm-values-unmasked', 'cn-values')
 
 
-# Find array types only among files produced for this run's output prefix.
-# This prevents files from another run in the same output directory from being
-# mistaken for inputs to the current merge.
+# Find array types only among files matching the selected prefixes.
 files <- list.files(out_dir, full.names = FALSE)
-files <- files[startsWith(files, paste0(out_pref, "-"))]
+input_prefixes <- if (!is.null(in_pref)) in_pref else out_pref
+keep <- rep(FALSE, length(files))
+for (prefix in paste0(input_prefixes, "-")) {
+  keep <- keep | startsWith(files, prefix)
+}
+files <- files[keep]
 array_types <- character()
 
 if (any(grepl("EPICv2", files, ignore.case = TRUE))) {
@@ -53,8 +63,9 @@ message("Array types: ", paste(array_types, collapse = ", "))
 
 if (length(array_types) == 0) {
   stop(
-    "No per-array methylation outputs were found for output prefix '",
-    out_pref,
+    "No per-array methylation outputs were found for ",
+    if (!is.null(in_pref)) "input prefixes '" else "output prefix '",
+    paste(input_prefixes, collapse = ", "),
     "' in ",
     out_dir,
     "."

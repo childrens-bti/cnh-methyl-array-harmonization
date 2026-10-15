@@ -31,6 +31,12 @@ inputs:
     type: string
     inputBinding:
       prefix: --output_prefix
+  input_prefixes:
+    type: 'string[]?'
+    doc: "List of output basenames from preprocess_illumina_arrays tasks being merged."
+    inputBinding:
+      prefix: --input_prefix
+      itemSeparator: ','
 outputs:
   merged_values:
     type: 'File[]'
