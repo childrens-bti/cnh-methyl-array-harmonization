@@ -22,7 +22,7 @@ option_list <- list(
               metavar = "character"),
   make_option(opt_str = "--input_prefix", type = "character", default = NULL,
               help = "comma separated input file prefices to merge",
-              metavar = "character", default = NULL)
+              metavar = "character")
 )
 opt <- parse_args(OptionParser(option_list = option_list))
 out_dir <- opt$output_dir
