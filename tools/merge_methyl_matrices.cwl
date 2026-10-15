@@ -8,6 +8,8 @@ requirements:
 - class: InlineJavascriptRequirement
 - class: DockerRequirement
   dockerPull: pgc-images.sbgenomics.com/childrens-bti/methyl-harmonization-cwl:v0.1.0
+- class: ResourceRequirement
+  ramMin: $(inputs.ram * 1000)
 - class: InitialWorkDirRequirement
   listing:
   - entryname: 02-merge-methyl-matrices.R
@@ -20,6 +22,7 @@ arguments:
 - prefix: --output_dir
   valueFrom: .
 inputs:
+  ram: { type: 'int?', default: 32, doc: "GB of RAM to allocate to the task." }
   run_merge:
     type: boolean
     default: true
