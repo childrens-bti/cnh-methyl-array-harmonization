@@ -28,8 +28,11 @@ opt <- parse_args(OptionParser(option_list = option_list))
 out_dir <- opt$output_dir
 out_pref <- opt$output_prefix
 in_pref <- opt$input_prefix
-if (!is.null(in_pref)) {
-  in_pref <- strsplit(in_pref, ",", fixed = TRUE)[[1]]
+# Select input prefixes once; out_pref is always used for generated files.
+input_prefixes <- if (!is.null(in_pref)) {
+  strsplit(in_pref, ",", fixed = TRUE)[[1]]
+} else {
+  out_pref
 }
 
 #define the data types - these will be looped through later
@@ -38,12 +41,26 @@ data_types <- c('beta-values-masked', 'm-values-masked', 'm-values-unmasked', 'c
 
 # Find array types only among files matching the selected prefixes.
 files <- list.files(out_dir, full.names = FALSE)
-input_prefixes <- if (!is.null(in_pref)) in_pref else out_pref
 keep <- rep(FALSE, length(files))
 for (prefix in paste0(input_prefixes, "-")) {
   keep <- keep | startsWith(files, prefix)
 }
 files <- files[keep]
+
+# Resolve existing per-array input paths once, including datasets split across
+# multiple input prefixes. Generated intermediate matrices use out_pref below.
+array_names <- c(
+  EPICv2 = "IlluminaHumanMethylationEPICv2",
+  EPICv1 = "IlluminaHumanMethylationEPIC",
+  `450k` = "IlluminaHumanMethylation450k"
+)
+input_data_types <- c("p-values", data_types)
+input_files <- lapply(array_names, function(array_name) {
+  setNames(lapply(input_data_types, function(data_type) {
+    suffix <- paste0("-", array_name, "-methyl-", data_type, ".parquet")
+    file.path(out_dir, files[endsWith(files, suffix)])
+  }), input_data_types)
+})
 array_types <- character()
 
 if (any(grepl("EPICv2", files, ignore.case = TRUE))) {
@@ -64,7 +81,7 @@ message("Array types: ", paste(array_types, collapse = ", "))
 if (length(array_types) == 0) {
   stop(
     "No per-array methylation outputs were found for ",
-    if (!is.null(in_pref)) "input prefixes '" else "output prefix '",
+    "prefixes '",
     paste(input_prefixes, collapse = ", "),
     "' in ",
     out_dir,
@@ -97,10 +114,7 @@ message(
 if ("EPICv2" %in% array_types) {
   message('converting EPICv2 probe names to match other array types...\n')
   # --- Load detP parquet ---
-  detP_epicv2_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylationEPICv2-methyl-p-values.parquet")
-  )
+  detP_epicv2_fn <- input_files[["EPICv2"]][["p-values"]]
   detP <- open_dataset(detP_epicv2_fn)
   #only want to calculate means on duplicate sites - saves memory
   dup_bases <- detP %>%
@@ -153,10 +167,7 @@ if ("EPICv2" %in% array_types) {
 if (all(c("EPICv1", "EPICv2") %in% array_types)) {
   message('finding common probes for EPICv1 and EPICv2 \n')
   # --- File paths ---
-  epicv1_vals_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylationEPIC-methyl-p-values.parquet")
-  )
+  epicv1_vals_fn <- input_files[["EPICv1"]][["p-values"]]
   # --- Open datasets (lazy) ---
   epicv1_vals <- open_dataset(epicv1_vals_fn)
   # --- Get EPICv1 probes (reference set) ---
@@ -194,14 +205,8 @@ if (all(c("EPICv1", "EPICv2") %in% array_types)) {
     message("Processing: ", data_type)
     
     # --- Build file paths ---
-    epicv2_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylationEPICv2-methyl-", data_type, ".parquet")
-    )
-    epicv1_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylationEPIC-methyl-", data_type, ".parquet")
-    )
+    epicv2_vals_fn <- input_files[["EPICv2"]][[data_type]]
+    epicv1_vals_fn <- input_files[["EPICv1"]][[data_type]]
     
     # --- Open datasets ---
     epicv2_vals <- open_dataset(epicv2_vals_fn)
@@ -254,10 +259,7 @@ if (all(c("EPICv1", "EPICv2") %in% array_types)) {
 if (all(c("EPICv1", "EPICv2", "450k") %in% array_types)) {
   message('finding common probes for EPICv1, EPICv2, and 450k \n')
   # --- File path ---
-  k450_vals_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-p-values.parquet")
-  )
+  k450_vals_fn <- input_files[["450k"]][["p-values"]]
   # --- Open dataset ---
   k450_vals <- open_dataset(k450_vals_fn)
   # --- Get 450k probes ---
@@ -287,10 +289,7 @@ if (all(c("EPICv1", "EPICv2", "450k") %in% array_types)) {
       paste0(out_pref, "-IlluminaHumanMethylationEPICv1-EPICv2-methyl-", data_type, ".parquet")
     )
     
-    k450_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-", data_type, ".parquet")
-    )
+    k450_vals_fn <- input_files[["450k"]][[data_type]]
     
     # --- Open datasets ---
     v1v2_vals <- open_dataset(v1v2_vals_fn)
@@ -340,15 +339,9 @@ if (all(c("EPICv1", "450k") %in% array_types) && !("EPICv2" %in% array_types))
   {message('finding EPICv1 and 450k common probes \n')
   
   # --- File paths ---
-  epicv1_vals_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylationEPIC-methyl-p-values.parquet")
-  )
+  epicv1_vals_fn <- input_files[["EPICv1"]][["p-values"]]
   
-  k450_vals_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-p-values.parquet")
-  )
+  k450_vals_fn <- input_files[["450k"]][["p-values"]]
   
   # --- Open datasets (lazy) ---
   epicv1_vals <- open_dataset(epicv1_vals_fn)
@@ -399,15 +392,9 @@ if (all(c("EPICv1", "450k") %in% array_types) &&
     message("Processing: ", data_type)
     
     # --- Build file paths ---
-    epicv1_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylationEPIC-methyl-", data_type, ".parquet")
-    )
+    epicv1_vals_fn <- input_files[["EPICv1"]][[data_type]]
     
-    k450_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-", data_type, ".parquet")
-    )
+    k450_vals_fn <- input_files[["450k"]][[data_type]]
     
     # --- Open datasets ---
     epicv1_vals <- open_dataset(epicv1_vals_fn)
@@ -461,10 +448,7 @@ if (all(c("EPICv2", "450k") %in% array_types) &&
     {message('finding EPICv2 and 450k common probes \n')
   
   # --- File paths ---
-  k450_vals_fn <- file.path(
-    out_dir,
-    paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-p-values.parquet")
-  )
+  k450_vals_fn <- input_files[["450k"]][["p-values"]]
   
   # --- Open datasets (lazy) ---
   k450_vals <- open_dataset(k450_vals_fn)
@@ -508,15 +492,9 @@ if (all(c("EPICv2", "450k") %in% array_types) &&
     message("Processing: ", data_type)
     
     # --- Build file paths ---
-    epicv2_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylationEPICv2-methyl-", data_type, ".parquet")
-    )
+    epicv2_vals_fn <- input_files[["EPICv2"]][[data_type]]
     
-    k450_vals_fn <- file.path(
-      out_dir,
-      paste0(out_pref, "-IlluminaHumanMethylation450k-methyl-", data_type, ".parquet")
-    )
+    k450_vals_fn <- input_files[["450k"]][[data_type]]
     
     # --- Open datasets ---
     epicv2_vals <- open_dataset(epicv2_vals_fn)
