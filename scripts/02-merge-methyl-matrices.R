@@ -20,7 +20,7 @@ option_list <- list(
   make_option(opt_str = "--output_prefix", type = "character", default = NULL,
               help = "output file prefix",
               metavar = "character"),
-  make_options(opt_str = "--input_prefix", type = "character", default = NULL,
+  make_option(opt_str = "--input_prefix", type = "character", default = NULL,
               help = "comma separated input file prefices to merge",
               metavar = "character", default = NULL)
 )
