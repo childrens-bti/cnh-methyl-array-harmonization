@@ -91,8 +91,10 @@ manifest_df <- read_tsv(file = opt$manifest_file, show_col_types = FALSE)
 required_columns <- c("file_name", "Bioassay_ID")
 missing_columns <- setdiff(required_columns, names(manifest_df))
 if (length(missing_columns) > 0) {
-    stop("Manifest is missing required column(s): ",
-         paste(missing_columns, collapse = ", "))
+    stop(
+        "Manifest is missing required column(s): ",
+        paste(missing_columns, collapse = ", ")
+    )
 }
 
 # A rerun may occur after gunzip has removed the original .gz files. Use an
@@ -136,7 +138,7 @@ matched_file_indices[use_unzipped_file] <- match(
 
 not_in_folder <- manifest_file_names[is.na(matched_file_indices)]
 
-out_file = paste0(out_base, "_additional_files.txt")
+out_file <- paste0(out_base, "_additional_files.txt")
 writeLines(
     setdiff(idat_file_names, idat_file_names[matched_file_indices]),
     file.path(out_file)
@@ -157,11 +159,23 @@ message("Unzipping IDAT files")
 BPREDO <- list()
 BPPARAM <- SerialParam()
 
+unzip_dir <- tempfile(pattern = "unzipped-idats-")
+dir.create(unzip_dir)
+
 idat_files <- bplapply(idat_files, function(xx) {
-    if (grepl(".gz$", xx)) {
+    if (grepl("\\.gz$", xx)) {
         message("Unzipping ", xx)
-        gunzip(xx, overwrite = TRUE)
-        xx <- gsub(".gz$", "", xx)
+        destname <- file.path(
+            unzip_dir,
+            sub("\\.gz$", "", basename(xx))
+        )
+        gunzip(
+            xx,
+            destname = destname,
+            overwrite = TRUE,
+            remove = FALSE
+        )
+        xx <- destname
     }
     xx
 }, BPREDO = BPREDO, BPPARAM = BPPARAM)
