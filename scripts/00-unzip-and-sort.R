@@ -183,13 +183,12 @@ idat_files <- bplapply(idat_files, function(xx) {
 message(idat_files)
 
 message("Reading IDAT files")
-all_quants <- bplapply(idat_files, function(xx) {
+all_n_probes <- vapply(idat_files, function(xx) {
     message("Reading ", xx)
-    quants <- readIDAT(xx)[["Quants"]]
-}, BPREDO = BPREDO, BPPARAM = BPPARAM)
+    nrow(readIDAT(xx)[["Quants"]])
+}, integer(1L))
 
 message("Sorting IDAT files into array type folders")
-all_n_probes <- vapply(all_quants, nrow, integer(1L))
 array_types <- cbind(do.call(rbind, lapply(all_n_probes, .guessArrayTypes)),
     size = all_n_probes
 )

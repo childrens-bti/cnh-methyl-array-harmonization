@@ -124,7 +124,7 @@ bad_samples <- sample_names[bad_sample_idx]
 
 if (length(bad_samples) > 0) {
   message("Samples with MAD = 0 in at least one control channel (will be skipped):")
-  zero_mad_samples <- paste0(out_base, "-", dataset, "zero-mad.txt")
+  zero_mad_samples <- paste0(out_base, "-", dataset, "-zero-mad.txt")
   fileConn <- file(zero_mad_samples)
   writeLines(bad_samples, fileConn)
   close(fileConn)
@@ -164,8 +164,9 @@ if (n_cores > 1) {
   chunks <- split(seq_len(n), ceiling(seq_len(n)/100))
   
   # run detectionP in parallel on each chunk
-  det_list <- bplapply(chunks, function(idx) {
-    message(sprintf("Processing chunk %d / %d ", idx, length(chunks)))
+  det_list <- bplapply(seq_along(chunks), function(chunk_number) {
+    idx <- chunks[[chunk_number]]
+    message(sprintf("Processing chunk %d / %d", chunk_number, length(chunks)))
     minfi::detectionP(RGset[, idx])
   }, BPPARAM = MulticoreParam(n_cores))
   

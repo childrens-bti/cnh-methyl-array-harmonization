@@ -2,7 +2,8 @@ class: CommandLineTool
 cwlVersion: v1.2
 id: merge_methyl_matrices
 doc: |-
-  Intersect probe sets and merge per-array methylation matrices.
+  Intersect probe sets and merge per-array methylation matrices, joining sample
+  columns across input batches. A single input batch is left unchanged.
 
 requirements:
 - class: InlineJavascriptRequirement
@@ -49,3 +50,6 @@ outputs:
       - '*-IlluminaHumanMethylationEPICv1-EPICv2-450k-methyl-*.parquet'
       - '*-IlluminaHumanMethylationEPICv1-450k-methyl-*.parquet'
       - '*-IlluminaHumanMethylationEPICv2-450k-methyl-*.parquet'
+      - '*-IlluminaHumanMethylationEPIC-merged-methyl-*.parquet'
+      - '*-IlluminaHumanMethylationEPICv2-merged-methyl-*.parquet'
+      - '*-IlluminaHumanMethylation450k-merged-methyl-*.parquet'
