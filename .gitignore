@@ -14,8 +14,6 @@ __pycache__/
 *.cwl.json
 *.inputs.json
 *.outputs.json
-**/*.sh
-!prep.sh
 *.err
 *.out
 tmp/
@@ -33,14 +31,8 @@ params/*
 test/
 logs/*
 !logs/.gitkeep
-sbg-hints/* 
+sbg-hints/*
 !sbg-hints/.gitkeep
-workflows/*
-!workflows/.gitkeep
-tools/*
-!tools/.gitkeep
-scripts/*
-!scripts/.gitkeep
 # harmonized data
 data/*
 !data/.gitkeep
